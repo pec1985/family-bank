@@ -1,0 +1,9 @@
+node_modules/
+.next/
+data/
+k8s/
+.env*
+package-lock.json
+bun.lock
+next-env.d.ts
+*.tsbuildinfo

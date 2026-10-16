@@ -1,0 +1,95 @@
+name: Build and deploy Family Bank
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Call the Kubernetes redeploy endpoint (disable for the first image publication)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: family-bank-deploy
+  cancel-in-progress: false
+
+jobs:
+  publish-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          labels: org.opencontainers.image.source=https://github.com/pec1985/family-bank
+          tags: |
+            ghcr.io/pec1985/family-bank:latest
+            ghcr.io/pec1985/family-bank:${{ github.sha }}
+
+      - name: Check deployment configuration
+        id: deployment
+        env:
+          DEPLOY_WEBHOOK_TOKEN: ${{ secrets.FAMILY_BANK_DEPLOY_TOKEN }}
+        run: |
+          if [ -n "$DEPLOY_WEBHOOK_TOKEN" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Image published. Configure FAMILY_BANK_DEPLOY_TOKEN after the initial Kubernetes setup to enable redeployment."
+          fi
+
+      - name: Redeploy image in Kubernetes
+        if: steps.deployment.outputs.enabled == 'true' && (github.event_name != 'workflow_dispatch' || inputs.deploy)
+        env:
+          DEPLOY_WEBHOOK_TOKEN: ${{ secrets.FAMILY_BANK_DEPLOY_TOKEN }}
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+          DEPLOY_URL: ${{ vars.FAMILY_BANK_DEPLOY_URL }}
+        run: |
+          test -n "$DEPLOY_WEBHOOK_TOKEN"
+          if [[ "$DEPLOY_URL" != https://* ]]; then
+            echo "::error::Configure FAMILY_BANK_DEPLOY_URL with the HTTPS URL of the deployment endpoint."
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error --connect-timeout 10 --max-time 30 --retry 3 \
+            --request POST \
+            --header "Authorization: Bearer $DEPLOY_WEBHOOK_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data "{\"image\":\"ghcr.io/pec1985/family-bank@$IMAGE_DIGEST\"}" \
+            "$DEPLOY_URL"
+          echo "Waiting for the new image to become available..."
+          for attempt in $(seq 1 60); do
+            if status=$(curl --fail --silent --connect-timeout 5 --max-time 10 \
+              --header "Authorization: Bearer $DEPLOY_WEBHOOK_TOKEN" \
+              "$DEPLOY_URL"); then
+              if jq --exit-status --arg image "ghcr.io/pec1985/family-bank@$IMAGE_DIGEST" \
+                '.image == $image and .ready == true' <<< "$status" >/dev/null; then
+                echo "Deployment is ready."
+                exit 0
+              fi
+            fi
+            sleep 5
+          done
+          echo "::error::Deployment did not become ready. Inspect the Kubernetes deployment and roll back if necessary."
+          exit 1

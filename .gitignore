@@ -1,0 +1,9 @@
+node_modules
+.next
+data/
+/k8s/
+# Incluye .env.local y .env.production con secretos locales.
+.env*
+*.tsbuildinfo
+.DS_Store
+npm-debug.log*

@@ -413,8 +413,7 @@ export default function Home() {
         <div className="login-glow" />
         <Card className="login-card">
           <div className="login-brand">
-            <BrandLogo className="brand-icon" size={40} />
-            <b>Banky</b>
+            <BrandLogo className="brand-icon" size={144} />
           </div>
           <div className="login-mascot">
             <FamilyMascot />

@@ -69,16 +69,11 @@ a:focus-visible {
   letter-spacing: -0.8px;
 }
 .brand-logo {
-  display: inline-grid;
-  place-items: center;
+  display: block;
   flex-shrink: 0;
-  border-radius: 29%;
-  background: var(--lime);
-  color: var(--ink);
-  font-size: 31px;
-  font-weight: 800;
-  line-height: 1;
-  transform: rotate(-7deg);
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff;
 }
 .settings-button.MuiIconButton-root,
 .topbar > .MuiIconButton-root {

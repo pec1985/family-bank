@@ -1,12 +1,14 @@
+import Image from 'next/image';
+
 export default function BrandLogo({ className, size }: { className: string; size: number }) {
   return (
-    <span
+    <Image
+      src="/brand/banky.webp"
+      alt="Banky"
       className={`${className} brand-logo`}
-      role="img"
-      aria-label="Banky"
-      style={{ width: size, height: size }}
-    >
-      €
-    </span>
+      width={size}
+      height={size}
+      sizes={`${size}px`}
+    />
   );
 }

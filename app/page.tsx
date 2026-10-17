@@ -10,6 +10,7 @@ import {
   Avatar,
   Box,
   Button,
+  Fab,
   Card,
   CardActionArea,
   Checkbox,
@@ -455,41 +456,30 @@ export default function Home() {
       </main>
     );
   return (
-    <main className="app-shell">
+    <main className={`app-shell${!member ? ' home-shell' : ''}`}>
       <header className="topbar">
-        {member ? (
+        {member && (
           <IconButton onClick={closeMember} aria-label="Volver">
             <ArrowBackRounded />
           </IconButton>
-        ) : (
-          <BrandLogo className="mini-brand" size={40} />
         )}
+        <BrandLogo className="mini-brand" size={40} />
         <div className="top-title">
           <Typography variant="h6" fontWeight={800}>
-            {member ? member.name : 'Banky'}
+            Banky
           </Typography>
         </div>
-        {!member ? (
-          <IconButton
-            aria-label="Ajustes de padres"
-            className="settings-button"
-            onClick={() => {
-              setAdminPin('');
-              setError('');
-              setAdminPinOpen(true);
-            }}
-          >
-            <SettingsRounded />
-          </IconButton>
-        ) : (
-          <IconButton
-            aria-label="Editar perfil"
-            className="topbar-profile-button"
-            onClick={openParentGate}
-          >
-            <MemberAvatar member={member} className="topbar-member-avatar" />
-          </IconButton>
-        )}
+        <IconButton
+          aria-label="Ajustes de padres"
+          className="settings-button"
+          onClick={() => {
+            setAdminPin('');
+            setError('');
+            setAdminPinOpen(true);
+          }}
+        >
+          <SettingsRounded />
+        </IconButton>
       </header>
       {!member ? (
         <>
@@ -583,19 +573,18 @@ export default function Home() {
               </Typography>
             </div>
           </div>
-          <Button
-            variant="contained"
-            className="add-task-button"
-            fullWidth
-            startIcon={<AddIcon />}
+          <Fab
+            aria-label="Añadir tarea"
+            color="primary"
+            className="add-task-fab"
             disabled={members.length === 0}
             onClick={() => {
               setError('');
               setAddOpen(true);
             }}
           >
-            Añadir tarea
-          </Button>
+            <AddIcon />
+          </Fab>
           <Dialog
             open={addOpen}
             onClose={() => setAddOpen(false)}
@@ -629,6 +618,12 @@ export default function Home() {
         </>
       ) : (
         <>
+          <section className="account-profile-heading">
+            <IconButton aria-label="Editar perfil" onClick={openParentGate}>
+              <MemberAvatar member={member} className="member-avatar" />
+            </IconButton>
+            <Typography component="h1">{member.name}</Typography>
+          </section>
           <section className="detail-summary">
             <div
               className="balance-chart-card"

@@ -1,4 +1,5 @@
 'use client';
+import BrandLogo from './components/BrandLogo';
 import { memberSlug as slug } from '@/lib/member-names';
 import { useEffect, useState } from 'react';
 import {
@@ -391,7 +392,7 @@ export default function Home() {
       <main className="login-page">
         <div className="login-glow" />
         <Card className="login-card">
-          <div className="brand-icon">🏦</div>
+          <BrandLogo className="brand-icon" size={62} />
           <Typography variant="h4" fontWeight={800}>
             Family Bank
           </Typography>
@@ -432,7 +433,7 @@ export default function Home() {
             <ArrowBackRounded />
           </IconButton>
         ) : (
-          <div className="mini-brand">🏦</div>
+          <BrandLogo className="mini-brand" size={40} />
         )}
         <div className="top-title">
           {!member && (

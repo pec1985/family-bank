@@ -1183,14 +1183,15 @@ body {
   gap: 12px;
   padding: 2px 12px 26px;
 }
-.admin-brand > span {
-  display: grid;
-  place-items: center;
+.admin-brand-logo {
   width: 43px;
   height: 43px;
   border-radius: 15px;
-  background: #d1e86f;
-  font-size: 24px;
+}
+.brand-logo {
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
 }
 .admin-brand b,
 .admin-brand small {

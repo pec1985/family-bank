@@ -1,4 +1,5 @@
 'use client';
+import BrandLogo from '../components/BrandLogo';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -745,7 +746,7 @@ export default function AdminPage() {
   const navContent = (
     <>
       <div className="admin-brand">
-        <span>🏦</span>
+        <BrandLogo className="admin-brand-logo" size={43} />
         <div>
           <b>Family Bank</b>
           <small>ADMINISTRACIÓN</small>

@@ -248,7 +248,7 @@ a:focus-visible {
 .member-chart .balance-chart-bar {
   height: 12px;
   background: #20282015;
-  border: 2px solid var(--ink);
+  border: 1px solid var(--ink);
 }
 .member-chart .balance-dot {
   box-shadow: 0 0 0 1.5px var(--ink);

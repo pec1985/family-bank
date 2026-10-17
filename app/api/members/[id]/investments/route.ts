@@ -9,14 +9,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { name, icon = '🌟' } = await req.json();
   const cleanName = typeof name === 'string' ? name.trim().slice(0, 60) : '';
   if (!cleanName)
-    return NextResponse.json({ error: 'Ponle un nombre a este sueño.' }, { status: 400 });
+    return NextResponse.json({ error: 'Ponle un nombre a este objetivo.' }, { status: 400 });
   const count = (
     db.prepare('SELECT COUNT(*) count FROM investments WHERE member_id=?').get(id) as {
       count: number;
     }
   ).count;
   if (count >= 5)
-    return NextResponse.json({ error: 'Puedes guardar hasta cinco sueños.' }, { status: 400 });
+    return NextResponse.json({ error: 'Puedes guardar hasta cinco objetivos.' }, { status: 400 });
   const result = db
     .prepare('INSERT INTO investments (member_id,name,icon) VALUES (?,?,?)')
     .run(id, cleanName, typeof icon === 'string' ? icon : '🌟');

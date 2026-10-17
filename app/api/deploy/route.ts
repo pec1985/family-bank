@@ -92,7 +92,7 @@ export async function POST(request: Request) {
   }
   if (!/^ghcr\.io\/pec1985\/family-bank@sha256:[a-f0-9]{64}$/.test(image)) {
     return NextResponse.json(
-      { error: 'Image must be a sha256 digest from the Family Bank GHCR package.' },
+      { error: 'Image must be a sha256 digest from the Banky GHCR package.' },
       { status: 400 },
     );
   }
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
   try {
     const response = await deploymentRequest('PATCH', image);
     if (!response.ok) {
-      console.error('Kubernetes refused the Family Bank deployment update:', response.status);
+      console.error('Kubernetes refused the Banky deployment update:', response.status);
       return NextResponse.json(
         { error: 'Kubernetes could not update the deployment.' },
         { status: 502 },
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ ok: true, image });
   } catch (error) {
-    console.error('Family Bank deployment update failed:', error);
+    console.error('Banky deployment update failed:', error);
     return NextResponse.json({ error: 'Kubernetes could not be reached.' }, { status: 502 });
   }
 }

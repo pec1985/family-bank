@@ -221,13 +221,14 @@ a:focus-visible {
   min-width: 0;
 }
 .member-info .MuiTypography-body1 {
+  text-transform: uppercase;
   font-family: var(--font-title);
-  font-size: 20px;
+  font-size: 26px;
+  line-height: 1.15;
   font-weight: 700;
   letter-spacing: -0.5px;
   overflow-wrap: anywhere;
 }
-.member-info .MuiTypography-caption,
 .member-total .MuiTypography-caption {
   color: #394a36;
   font-size: 11px;
@@ -241,29 +242,16 @@ a:focus-visible {
   font-weight: 700;
   letter-spacing: -0.6px;
 }
-.member-balances {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin: 0 19px;
-  padding: 12px 0 17px;
-  border-top: 1px solid var(--line);
+.member-chart {
+  padding: 4px 19px 20px;
 }
-.member-balances > div {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 11px;
+.member-chart .balance-chart-bar {
+  height: 12px;
+  background: #20282015;
+  border: 2px solid var(--ink);
 }
-.member-balances svg {
-  font-size: 18px;
-}
-.member-balances span {
-  display: grid;
-  gap: 2px;
-}
-.member-balances b {
-  font-size: 14px;
+.member-chart .balance-dot {
+  box-shadow: 0 0 0 1.5px var(--ink);
 }
 .tip-card {
   display: flex;
@@ -304,13 +292,6 @@ a:focus-visible {
   color: var(--muted);
   font-size: 14px;
 }
-.account-heading.MuiTypography-root {
-  margin: 13px 0 18px;
-  font-size: 33px;
-  line-height: 1.08;
-  font-weight: 700;
-  letter-spacing: -1px;
-}
 .detail-summary {
   margin-bottom: 20px;
 }
@@ -328,6 +309,7 @@ a:focus-visible {
   line-height: 1.1;
 }
 .balance-chart-bar {
+  position: relative;
   height: 9px;
   width: 100%;
   display: flex;
@@ -346,7 +328,20 @@ a:focus-visible {
 }
 .balance-chart-investment,
 .investment-dot {
-  background: var(--pink);
+  background: #234bc4;
+}
+.balance-chart-card .balance-chart-bar {
+  outline: 1px solid var(--paper);
+}
+.balance-chart-blend {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  background: linear-gradient(to right, var(--lime), #234bc4);
+  pointer-events: none;
+}
+.balance-chart-card .balance-dot {
+  box-shadow: 0 0 0 1px var(--paper);
 }
 .balance-chart-legend {
   display: grid;
@@ -420,7 +415,8 @@ a:focus-visible {
   grid-column: 1;
 }
 .cash-compact-copy .MuiTypography-caption {
-  color: #394a36;
+  color: var(--ink);
+  font-weight: 600;
   font-size: 12px;
 }
 .cash-compact-copy h5 {
@@ -1395,12 +1391,14 @@ a:focus-visible {
     padding: 16px 14px 12px;
     gap: 9px;
   }
-  .member-info .MuiTypography-body1,
+  .member-info .MuiTypography-body1 {
+    font-size: 23px;
+  }
   .member-total .MuiTypography-body1 {
     font-size: 18px;
   }
-  .member-balances {
-    margin: 0 14px;
+  .member-chart {
+    padding: 4px 14px 17px;
   }
   .balance-chart-card {
     padding: 21px 18px;

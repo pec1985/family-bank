@@ -1,4 +1,4 @@
-# Family Bank
+# Banky
 
 Aplicación familiar para administrar el efectivo, las tareas y las metas de inversión de sus miembros. La interfaz está en español y se adapta a móvil.
 

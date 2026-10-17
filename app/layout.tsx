@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import './globals.css';
 import AppTheme from './components/AppTheme';
 export const metadata: Metadata = {
-  title: 'Family Bank',
+  title: 'Banky',
   description: 'La hucha de toda la familia',
-  applicationName: 'Family Bank',
+  applicationName: 'Banky',
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
-  appleWebApp: { capable: true, title: 'Family Bank', statusBarStyle: 'default' },
+  appleWebApp: { capable: true, title: 'Banky', statusBarStyle: 'default' },
 };
 export const viewport = { width: 'device-width', initialScale: 1 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {

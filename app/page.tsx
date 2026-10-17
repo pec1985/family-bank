@@ -1,5 +1,6 @@
 'use client';
 import BrandLogo from './components/BrandLogo';
+import BalanceBar from './components/BalanceBar';
 import FamilyMascot from './components/FamilyMascot';
 import PinDialog from './components/PinDialog';
 import { memberSlug as slug } from '@/lib/member-names';
@@ -32,7 +33,6 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackRounded from '@mui/icons-material/ArrowBackRounded';
 import AccountBalanceWalletRounded from '@mui/icons-material/AccountBalanceWalletRounded';
-import TrendingUpRounded from '@mui/icons-material/TrendingUpRounded';
 import CelebrationRounded from '@mui/icons-material/CelebrationRounded';
 import PhotoCameraRounded from '@mui/icons-material/PhotoCameraRounded';
 import SettingsRounded from '@mui/icons-material/SettingsRounded';
@@ -413,7 +413,7 @@ export default function Home() {
         <Card className="login-card">
           <div className="login-brand">
             <BrandLogo className="brand-icon" size={40} />
-            <b>Family Bank</b>
+            <b>Banky</b>
           </div>
           <div className="login-mascot">
             <FamilyMascot />
@@ -421,7 +421,7 @@ export default function Home() {
           <Typography variant="h4" component="h1" fontWeight={900}>
             Pequeños pasos,
             <br />
-            grandes sueños.
+            grandes objetivos.
           </Typography>
           <Typography color="text.secondary" sx={{ mt: 0.5, mb: 3 }}>
             Un lugar para crecer en familia.
@@ -466,7 +466,7 @@ export default function Home() {
         )}
         <div className="top-title">
           <Typography variant="h6" fontWeight={800}>
-            {member ? member.name : 'Family Bank'}
+            {member ? member.name : 'Banky'}
           </Typography>
         </div>
         {!member ? (
@@ -498,7 +498,7 @@ export default function Home() {
               <Typography className="eyebrow">TU BANCO FAMILIAR</Typography>
               <Typography variant="h5" component="h1" fontWeight={900}>
                 ¡Hola, familia!
-                <br />A por esos sueños.
+                <br />A por esos objetivos.
               </Typography>
               <Typography color="text.secondary" sx={{ mt: 1 }}>
                 El esfuerzo tiene su recompensa.
@@ -541,9 +541,6 @@ export default function Home() {
                     </span>
                     <div className="member-info">
                       <Typography fontWeight={750}>{m.name}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Ahorro total
-                      </Typography>
                     </div>
                     <div className="member-total">
                       <Typography fontWeight={800}>
@@ -554,18 +551,23 @@ export default function Home() {
                       </Typography>
                     </div>
                   </div>
-                  <div className="member-balances">
-                    <div>
-                      <AccountBalanceWalletRounded />
-                      <span>
-                        Efectivo <b>{money(m.cashCents)}</b>
-                      </span>
-                    </div>
-                    <div>
-                      <TrendingUpRounded />
-                      <span>
-                        Inversión <b>{money(m.investmentCents)}</b>
-                      </span>
+                  <div className="member-chart">
+                    <BalanceBar cashCents={m.cashCents} investmentCents={m.investmentCents} />
+                    <div className="balance-chart-legend">
+                      <div className="balance-chart-item">
+                        <div className="balance-chart-label">
+                          <span className="balance-dot cash-dot" aria-hidden="true" />
+                          Efectivo
+                        </div>
+                        <b>{money(m.cashCents)}</b>
+                      </div>
+                      <div className="balance-chart-item investment-item">
+                        <div className="balance-chart-label">
+                          Ahorro e inversión
+                          <span className="balance-dot investment-dot" aria-hidden="true" />
+                        </div>
+                        <b>{money(m.investmentCents)}</b>
+                      </div>
                     </div>
                   </div>
                 </CardActionArea>
@@ -627,21 +629,6 @@ export default function Home() {
         </>
       ) : (
         <>
-          <Typography component="h1" className="account-heading">
-            {tab === 0 ? (
-              <>
-                Tu esfuerzo
-                <br />
-                ya tiene un lugar.
-              </>
-            ) : (
-              <>
-                Lo que sueñas,
-                <br />
-                un poco más cerca.
-              </>
-            )}
-          </Typography>
           <section className="detail-summary">
             <div
               className="balance-chart-card"
@@ -650,13 +637,7 @@ export default function Home() {
             >
               <Typography className="eyebrow">Saldo total de {member.name}</Typography>
               <Typography className="balance-chart-total">{money(totalBalance)}</Typography>
-              <div className="balance-chart-bar" aria-hidden="true">
-                <span className="balance-chart-cash" style={{ width: `${cashPercent}%` }} />
-                <span
-                  className="balance-chart-investment"
-                  style={{ width: `${investmentPercent}%` }}
-                />
-              </div>
+              <BalanceBar cashCents={member.cashCents} investmentCents={member.investmentCents} />
               <div className="balance-chart-legend">
                 <div className="balance-chart-item">
                   <div className="balance-chart-label">

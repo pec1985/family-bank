@@ -748,7 +748,7 @@ export default function AdminPage() {
       <div className="admin-brand">
         <BrandLogo className="admin-brand-logo" size={43} />
         <div>
-          <b>Family Bank</b>
+          <b>Banky</b>
           <small>ADMINISTRACIÓN</small>
         </div>
       </div>
@@ -824,7 +824,7 @@ export default function AdminPage() {
             <MenuRounded />
           </IconButton>
           <div>
-            <Typography variant="overline">FAMILY BANK · ADMIN</Typography>
+            <Typography variant="overline">BANKY · ADMIN</Typography>
             <Typography variant="h4" component="h1">
               {sectionTitle}
             </Typography>

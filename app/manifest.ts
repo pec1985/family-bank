@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Family Bank',
-    short_name: 'Family Bank',
+    name: 'Banky',
+    short_name: 'Banky',
     description: 'La hucha de toda la familia',
     lang: 'es',
     start_url: '/',

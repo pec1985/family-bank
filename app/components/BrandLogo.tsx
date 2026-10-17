@@ -3,7 +3,7 @@ export default function BrandLogo({ className, size }: { className: string; size
     <span
       className={`${className} brand-logo`}
       role="img"
-      aria-label="Family Bank"
+      aria-label="Banky"
       style={{ width: size, height: size }}
     >
       €

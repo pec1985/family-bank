@@ -1,5 +1,6 @@
 'use client';
 import BrandLogo from './components/BrandLogo';
+import FamilyMascot from './components/FamilyMascot';
 import PinDialog from './components/PinDialog';
 import { memberSlug as slug } from '@/lib/member-names';
 import { useEffect, useState } from 'react';
@@ -17,7 +18,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Fab,
   FormControl,
   FormControlLabel,
   IconButton,
@@ -398,6 +398,12 @@ export default function Home() {
   const totalBalance = member ? member.cashCents + member.investmentCents : 0;
   const cashPercent = totalBalance ? (member!.cashCents / totalBalance) * 100 : 0;
   const investmentPercent = totalBalance ? (member!.investmentCents / totalBalance) * 100 : 0;
+  const contributionCents = Math.max(0, Math.round((Number(amount) || 0) * 100));
+  const projectedCents = Math.round(contributionCents * investmentMultiplier);
+  const validContribution =
+    Number.isFinite(Number(amount)) &&
+    contributionCents > 0 &&
+    contributionCents <= (member?.cashCents || 0);
   const percentLabel = (value: number) =>
     `${value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`;
   if (!logged)
@@ -405,12 +411,20 @@ export default function Home() {
       <main className="login-page">
         <div className="login-glow" />
         <Card className="login-card">
-          <BrandLogo className="brand-icon" size={62} />
-          <Typography variant="h4" fontWeight={800}>
-            Family Bank
+          <div className="login-brand">
+            <BrandLogo className="brand-icon" size={40} />
+            <b>Family Bank</b>
+          </div>
+          <div className="login-mascot">
+            <FamilyMascot />
+          </div>
+          <Typography variant="h4" component="h1" fontWeight={900}>
+            Pequeños pasos,
+            <br />
+            grandes sueños.
           </Typography>
           <Typography color="text.secondary" sx={{ mt: 0.5, mb: 3 }}>
-            Pequeños pasos, grandes sueños
+            Un lugar para crecer en familia.
           </Typography>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -420,6 +434,7 @@ export default function Home() {
           <form onSubmit={login} className="login-form">
             <TextField
               label="Usuario"
+              autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               fullWidth
@@ -427,6 +442,7 @@ export default function Home() {
             <TextField
               label="Contraseña"
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               fullWidth
@@ -449,13 +465,8 @@ export default function Home() {
           <BrandLogo className="mini-brand" size={40} />
         )}
         <div className="top-title">
-          {!member && (
-            <Typography variant="overline" color="text.secondary">
-              TU BANCO FAMILIAR
-            </Typography>
-          )}
           <Typography variant="h6" fontWeight={800}>
-            {member ? member.name : '¡Hola, familia!'}
+            {member ? member.name : 'Family Bank'}
           </Typography>
         </div>
         {!member ? (
@@ -483,24 +494,43 @@ export default function Home() {
       {!member ? (
         <>
           <section className="welcome">
-            <div>
-              <Typography variant="h5" fontWeight={800}>
-                El esfuerzo tiene
-                <br />
-                su recompensa ✨
+            <div className="welcome-copy">
+              <Typography className="eyebrow">TU BANCO FAMILIAR</Typography>
+              <Typography variant="h5" component="h1" fontWeight={900}>
+                ¡Hola, familia!
+                <br />A por esos sueños.
               </Typography>
               <Typography color="text.secondary" sx={{ mt: 1 }}>
-                Mira cómo crecen sus ahorros.
+                El esfuerzo tiene su recompensa.
               </Typography>
             </div>
-            <div className="welcome-art">🌱</div>
+            <FamilyMascot multiplier={investmentMultiplier} />
           </section>
-          <Typography className="section-label">CUENTAS DE LA FAMILIA</Typography>
+          <div className="section-heading">
+            <Typography component="h2" className="section-label">
+              Cuentas de la familia
+            </Typography>
+            <span>
+              {members.length} {members.length === 1 ? 'perfil' : 'perfiles'}
+            </span>
+          </div>
           <div className="member-list">
             {members.length === 0 && (
-              <Alert severity="info">
-                Añade a tus hijos desde Ajustes de padres → Perfiles → Añadir miembro.
-              </Alert>
+              <div className="family-empty">
+                <span aria-hidden="true">✦</span>
+                <h2>El primer paso es hacerlo juntos.</h2>
+                <p>Añade un perfil para empezar a ganar, guardar y hacer planes.</p>
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    setAdminPin('');
+                    setError('');
+                    setAdminPinOpen(true);
+                  }}
+                >
+                  Añadir el primer miembro
+                </Button>
+              </div>
             )}
             {members.map((m) => (
               <Card key={m.id} className="member-card">
@@ -551,16 +581,19 @@ export default function Home() {
               </Typography>
             </div>
           </div>
-          <Fab
-            color="primary"
-            className="add-fab"
+          <Button
+            variant="contained"
+            className="add-task-button"
+            fullWidth
+            startIcon={<AddIcon />}
+            disabled={members.length === 0}
             onClick={() => {
               setError('');
               setAddOpen(true);
             }}
           >
-            <AddIcon />
-          </Fab>
+            Añadir tarea
+          </Button>
           <Dialog
             open={addOpen}
             onClose={() => setAddOpen(false)}
@@ -575,7 +608,7 @@ export default function Home() {
                     key={m.id}
                     className="chooser-item"
                     onClick={() => {
-                      setMember(m);
+                      void openMember(m);
                       setAddOpen(false);
                       setSelected(null);
                       setError('');
@@ -594,12 +627,28 @@ export default function Home() {
         </>
       ) : (
         <>
+          <Typography component="h1" className="account-heading">
+            {tab === 0 ? (
+              <>
+                Tu esfuerzo
+                <br />
+                ya tiene un lugar.
+              </>
+            ) : (
+              <>
+                Lo que sueñas,
+                <br />
+                un poco más cerca.
+              </>
+            )}
+          </Typography>
           <section className="detail-summary">
             <div
               className="balance-chart-card"
               role="img"
               aria-label={`Saldo total ${money(totalBalance)}. Efectivo ${percentLabel(cashPercent)}, ${money(member.cashCents)}. Ahorro e inversión ${percentLabel(investmentPercent)}, ${money(member.investmentCents)}.`}
             >
+              <Typography className="eyebrow">Saldo total de {member.name}</Typography>
               <Typography className="balance-chart-total">{money(totalBalance)}</Typography>
               <div className="balance-chart-bar" aria-hidden="true">
                 <span className="balance-chart-cash" style={{ width: `${cashPercent}%` }} />
@@ -612,13 +661,13 @@ export default function Home() {
                 <div className="balance-chart-item">
                   <div className="balance-chart-label">
                     <span className="balance-dot cash-dot" />
-                    Efectivo {percentLabel(cashPercent)}
+                    Efectivo
                   </div>
                   <b>{money(member.cashCents)}</b>
                 </div>
                 <div className="balance-chart-item investment-item">
                   <div className="balance-chart-label">
-                    Ahorro e inversión {percentLabel(investmentPercent)}
+                    Ahorro e inversión
                     <span className="balance-dot investment-dot" />
                   </div>
                   <b>{money(member.investmentCents)}</b>
@@ -631,6 +680,7 @@ export default function Home() {
             onChange={(_, v) => setTab(v)}
             variant="fullWidth"
             className="balance-tabs"
+            aria-label="Tipo de saldo"
           >
             <Tab label="Efectivo" />
             <Tab label="Inversión" />
@@ -661,7 +711,7 @@ export default function Home() {
                     } else setTab(1);
                   }}
                 >
-                  Invertir
+                  Invertir para una meta
                 </Button>
               </Card>
               <div className="history-head">
@@ -691,18 +741,33 @@ export default function Home() {
                 {transactions.filter((t) => t.kind === 'task').length === 0 && (
                   <div className="empty-state">
                     <span>🌟</span>
+                    <b>Aquí empiezan tus logros.</b>
                     <Typography color="text.secondary">
                       Las tareas completadas aparecerán aquí.
                     </Typography>
                   </div>
                 )}
               </div>
+              <Button
+                fullWidth
+                className="secondary-action"
+                onClick={() => {
+                  setSelected(null);
+                  setError('');
+                  setTaskMember(member);
+                }}
+                startIcon={<AddIcon />}
+              >
+                Elegir una tarea
+              </Button>
             </div>
           ) : (
             <div className="account-content">
               <div className="dream-heading">
                 <div>
-                  <Typography variant="h5">Metas de inversión 🌈</Typography>
+                  <Typography variant="h5" component="h2">
+                    Metas de inversión
+                  </Typography>
                   <Typography color="text.secondary" variant="body2">
                     Elige en cuál quieres ahorrar.
                   </Typography>
@@ -711,17 +776,11 @@ export default function Home() {
               <div className="dream-list">
                 {member.investments.map((goal) => (
                   <Card key={goal.id} className="dream-card">
+                    <span className="goal-badge">Tu dinero crece ×{investmentMultiplier}</span>
                     <div className="dream-card-icon">{goal.icon}</div>
                     <div className="dream-card-copy">
                       <b>{goal.name}</b>
-                      <small>¡Ya tienes {money(goal.balanceCents)}!</small>
-                      <div className="dream-progress">
-                        <span
-                          style={{
-                            width: `${Math.min(100, Math.max(8, goal.balanceCents / 100))}%`,
-                          }}
-                        />
-                      </div>
+                      <span className="goal-amount">{money(goal.balanceCents)}</span>
                     </div>
                     <Button
                       size="small"
@@ -731,7 +790,7 @@ export default function Home() {
                         setInvestOpen(true);
                       }}
                     >
-                      Invertir
+                      Invertir en esta meta
                     </Button>
                   </Card>
                 ))}
@@ -889,13 +948,32 @@ export default function Home() {
             onChange={(e) => setAmount(e.target.value)}
             fullWidth
           />
+          <div className="investment-preview" aria-live="polite">
+            <div>
+              <span>Tu aportación</span>
+              <b>{money(contributionCents)}</b>
+            </div>
+            <div>
+              <span>La familia añade</span>
+              <b>{money(projectedCents - contributionCents)}</b>
+            </div>
+            <div className="investment-preview-total">
+              <b>Para tu meta</b>
+              <strong>{money(projectedCents)}</strong>
+            </div>
+          </div>
+          {member?.cashCents === 0 && (
+            <Typography className="investment-hint">
+              Completa una tarea para tener efectivo disponible.
+            </Typography>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setInvestOpen(false)}>Cancelar</Button>
           <Button
             variant="contained"
             onClick={() => void invest()}
-            disabled={busy || !investmentId}
+            disabled={busy || !investmentId || !validContribution}
           >
             {busy ? 'Invirtiendo…' : 'Invertir'}
           </Button>

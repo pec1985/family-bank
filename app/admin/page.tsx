@@ -825,10 +825,33 @@ export default function AdminPage() {
           </IconButton>
           <div>
             <Typography variant="overline">FAMILY BANK · ADMIN</Typography>
-            <Typography variant="h4">{sectionTitle}</Typography>
+            <Typography variant="h4" component="h1">
+              {sectionTitle}
+            </Typography>
+            <Typography className="admin-header-subtitle">
+              {
+                {
+                  profiles: 'Sus planes. Su espacio.',
+                  tasks: 'Pequeñas tareas. Grandes hábitos.',
+                  investment: 'Su esfuerzo se multiplica.',
+                  access: 'El acceso, en vuestras manos.',
+                }[section]
+              }
+            </Typography>
           </div>
           <div className="admin-lock">🔒 Solo adultos</div>
         </header>
+        <nav className="admin-mobile-tabs" aria-label="Secciones de padres">
+          {navItems.map((item) => (
+            <Button
+              key={item.id}
+              onClick={() => setSection(item.id)}
+              aria-current={section === item.id ? 'page' : undefined}
+            >
+              {item.label}
+            </Button>
+          ))}
+        </nav>
         {error && (
           <Alert severity="error" onClose={() => setError('')}>
             {error}
@@ -842,9 +865,10 @@ export default function AdminPage() {
         <section className="admin-section-content">
           {section === 'profiles' && (
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-              <IconButton
+              <Button
                 aria-label="Añadir miembro"
-                title="Añadir miembro"
+                variant="contained"
+                startIcon={<AddRounded />}
                 disabled={busy}
                 onClick={() => {
                   setNewMemberName('');
@@ -853,14 +877,9 @@ export default function AdminPage() {
                   setNewMemberError('');
                   setNewMemberOpen(true);
                 }}
-                sx={{
-                  bgcolor: 'var(--berry)',
-                  color: 'white',
-                  '&:hover': { bgcolor: 'var(--berry)', filter: 'brightness(.9)' },
-                }}
               >
-                <AddRounded />
-              </IconButton>
+                Añadir miembro
+              </Button>
             </div>
           )}
           <Dialog
@@ -1062,6 +1081,11 @@ export default function AdminPage() {
                   <Typography variant="h6">Reglas de inversión</Typography>
                   <Typography color="text.secondary">Cuánto crece cada aportación</Typography>
                 </div>
+              </div>
+              <div className="admin-rule-hero">
+                <span>Multiplicador de las aportaciones</span>
+                <strong>×{multiplier || '2'}</strong>
+                <p>Por cada 1 € aportado, hay {multiplier || '2'} € para la meta.</p>
               </div>
               <TextField
                 label="Multiplicador"

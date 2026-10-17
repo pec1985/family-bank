@@ -563,7 +563,7 @@ export default function Home() {
                       </div>
                       <div className="balance-chart-item investment-item">
                         <div className="balance-chart-label">
-                          Ahorro e inversión
+                          Inversión
                           <span className="balance-dot investment-dot" aria-hidden="true" />
                         </div>
                         <b>{money(m.investmentCents)}</b>
@@ -633,7 +633,7 @@ export default function Home() {
             <div
               className="balance-chart-card"
               role="img"
-              aria-label={`Saldo total ${money(totalBalance)}. Efectivo ${percentLabel(cashPercent)}, ${money(member.cashCents)}. Ahorro e inversión ${percentLabel(investmentPercent)}, ${money(member.investmentCents)}.`}
+              aria-label={`Saldo total ${money(totalBalance)}. Efectivo ${percentLabel(cashPercent)}, ${money(member.cashCents)}. Inversión ${percentLabel(investmentPercent)}, ${money(member.investmentCents)}.`}
             >
               <Typography className="eyebrow">Saldo total de {member.name}</Typography>
               <Typography className="balance-chart-total">{money(totalBalance)}</Typography>
@@ -648,7 +648,7 @@ export default function Home() {
                 </div>
                 <div className="balance-chart-item investment-item">
                   <div className="balance-chart-label">
-                    Ahorro e inversión
+                    Inversión
                     <span className="balance-dot investment-dot" />
                   </div>
                   <b>{money(member.investmentCents)}</b>

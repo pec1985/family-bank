@@ -1,5 +1,6 @@
 'use client';
 import BrandLogo from './components/BrandLogo';
+import PinDialog from './components/PinDialog';
 import { memberSlug as slug } from '@/lib/member-names';
 import { useEffect, useState } from 'react';
 import {
@@ -168,7 +169,7 @@ export default function Home() {
     setError('');
     void refresh();
   };
-  const claim = async () => {
+  const claim = async (pin: string) => {
     if (!member || !selected) return;
     setBusy(true);
     setError('');
@@ -179,7 +180,7 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          code,
+          code: pin,
           ...(isCustom
             ? {
                 title: selected.title,
@@ -242,17 +243,28 @@ export default function Home() {
     setAmount('');
     await refresh();
   };
+  const submitPin = async (action: () => Promise<void>) => {
+    if (busy) return;
+    try {
+      await action();
+    } catch {
+      setError('No se pudo comprobar el PIN. Inténtalo de nuevo.');
+    } finally {
+      setBusy(false);
+    }
+  };
   const openParentGate = () => {
+    setError('');
     setParentPassword('');
     setParentGateOpen(true);
   };
-  const enterAdmin = async () => {
+  const enterAdmin = async (pin: string) => {
     setBusy(true);
     setError('');
     const r = await fetch('/api/admin/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: adminPin }),
+      body: JSON.stringify({ pin }),
     });
     const d = await r.json();
     setBusy(false);
@@ -260,20 +272,21 @@ export default function Home() {
       setError(d.error);
       return;
     }
+    setAdminPinOpen(false);
     window.location.href = '/admin';
   };
   const closeProfileEditor = () => {
     setProfileEditOpen(false);
     void fetch('/api/parent/lock', { method: 'POST' });
   };
-  const verifyParent = async () => {
+  const verifyParent = async (pin: string) => {
     if (!member) return;
     setBusy(true);
     setError('');
     const response = await fetch('/api/parent/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: parentPassword }),
+      body: JSON.stringify({ pin }),
     });
     const data = await response.json();
     setBusy(false);
@@ -762,7 +775,7 @@ export default function Home() {
           )}
         </>
       )}
-      {error && member && (
+      {error && member && !codeOpen && !adminPinOpen && !parentGateOpen && (
         <Alert severity="error" className="floating-error" onClose={() => setError('')}>
           {error}
         </Alert>
@@ -827,31 +840,19 @@ export default function Home() {
           </Button>
         </DialogActions>
       </Dialog>
-      <Dialog
+      <PinDialog
         open={codeOpen}
+        title="Confirma la tarea 🔐"
+        value={code}
+        onChange={setCode}
+        onComplete={(pin) => void submitPin(() => claim(pin))}
         onClose={() => setCodeOpen(false)}
-        fullWidth
-        PaperProps={{ className: 'rounded-dialog' }}
+        busy={busy}
+        error={error}
       >
-        <DialogTitle>Confirma la tarea 🔐</DialogTitle>
-        <DialogContent>
-          <Typography color="text.secondary" sx={{ mb: 2 }}>
-            Introduce el código para añadir {selected ? money(selected.amountCents) : ''} a la
-            cuenta de {member?.name}.
-          </Typography>
-          <PinKeypad value={code} onChange={setCode} />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCodeOpen(false)}>Cancelar</Button>
-          <Button
-            variant="contained"
-            onClick={() => void claim()}
-            disabled={busy || code.length !== 4}
-          >
-            {busy ? 'Comprobando…' : 'Confirmar'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        Introduce el código para añadir {selected ? money(selected.amountCents) : ''} a la cuenta de{' '}
+        {member?.name}.
+      </PinDialog>
       <Dialog
         open={investOpen}
         onClose={() => setInvestOpen(false)}
@@ -920,64 +921,30 @@ export default function Home() {
           setCustomOpen(true);
         }}
       />
-      <Dialog
+      <PinDialog
         open={adminPinOpen}
+        title="Ajustes de padres 🔒"
+        value={adminPin}
+        onChange={setAdminPin}
+        onComplete={(pin) => void submitPin(() => enterAdmin(pin))}
         onClose={() => setAdminPinOpen(false)}
-        fullWidth
-        PaperProps={{ className: 'rounded-dialog' }}
+        busy={busy}
+        error={error}
       >
-        <DialogTitle>Ajustes de padres 🔒</DialogTitle>
-        <DialogContent>
-          <Typography color="text.secondary" sx={{ mb: 2 }}>
-            Introduce el número secreto para entrar en Admin.
-          </Typography>
-          <PinKeypad value={adminPin} onChange={setAdminPin} />
-          {error && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {error}
-            </Alert>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAdminPinOpen(false)}>Cancelar</Button>
-          <Button
-            variant="contained"
-            onClick={() => void enterAdmin()}
-            disabled={busy || adminPin.length !== 4}
-          >
-            {busy ? 'Comprobando…' : 'Entrar en Admin'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog
+        Introduce el número secreto para entrar en Admin.
+      </PinDialog>
+      <PinDialog
         open={parentGateOpen}
+        title="Zona de madres y padres 🔒"
+        value={parentPassword}
+        onChange={setParentPassword}
+        onComplete={(pin) => void submitPin(() => verifyParent(pin))}
         onClose={() => setParentGateOpen(false)}
-        fullWidth
-        PaperProps={{ className: 'rounded-dialog' }}
+        busy={busy}
+        error={error}
       >
-        <DialogTitle>Zona de madres y padres 🔒</DialogTitle>
-        <DialogContent>
-          <Typography color="text.secondary" sx={{ mb: 2 }}>
-            Introduce el número secreto para editar el perfil de {member?.name}.
-          </Typography>
-          <PinKeypad value={parentPassword} onChange={setParentPassword} />
-          {error && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {error}
-            </Alert>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setParentGateOpen(false)}>Cancelar</Button>
-          <Button
-            variant="contained"
-            onClick={() => void verifyParent()}
-            disabled={busy || parentPassword.length !== 4}
-          >
-            {busy ? 'Comprobando…' : 'Entrar'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        Introduce el número secreto para editar el perfil de {member?.name}.
+      </PinDialog>
       <Dialog
         open={profileEditOpen}
         onClose={closeProfileEditor}
@@ -1173,40 +1140,5 @@ function TaskDialog({
         </div>
       </DialogContent>
     </Dialog>
-  );
-}
-function PinKeypad({ value, onChange }: { value: string; onChange: (value: string) => void }) {
-  const add = (digit: string) => {
-    if (value.length < 4) onChange(value + digit);
-  };
-  return (
-    <div className="pin-keypad" aria-label="Teclado numérico para el PIN">
-      <div className="pin-dots" aria-label={`${value.length} de 4 cifras`} aria-live="polite">
-        {[0, 1, 2, 3].map((i) => (
-          <span key={i} className={i < value.length ? 'filled' : ''} />
-        ))}
-      </div>
-      <div className="pin-keys">
-        {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'clear', '0', 'delete'].map((key) => (
-          <button
-            type="button"
-            key={key}
-            className="pin-key"
-            aria-label={
-              key === 'clear' ? 'Borrar PIN' : key === 'delete' ? 'Borrar última cifra' : key
-            }
-            onClick={() =>
-              key === 'clear'
-                ? onChange('')
-                : key === 'delete'
-                  ? onChange(value.slice(0, -1))
-                  : add(key)
-            }
-          >
-            {key === 'clear' ? 'C' : key === 'delete' ? '⌫' : key}
-          </button>
-        ))}
-      </div>
-    </div>
   );
 }

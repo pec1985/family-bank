@@ -170,9 +170,8 @@ body {
 }
 .add-fab {
   position: fixed !important;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(min(194px, calc(50vw - 50px)));
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  right: max(calc(24px + env(safe-area-inset-right, 0px)), calc((100vw - 520px) / 2 + 24px));
   width: 60px;
   height: 60px !important;
   border-radius: 20px !important;

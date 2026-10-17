@@ -547,7 +547,7 @@ export default function Home() {
                         {money(m.cashCents + m.investmentCents)}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        total
+                        TOTAL
                       </Typography>
                     </div>
                   </div>

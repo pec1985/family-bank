@@ -30,6 +30,7 @@ import PhotoCameraRounded from '@mui/icons-material/PhotoCameraRounded';
 import PeopleAltRounded from '@mui/icons-material/PeopleAltRounded';
 import ChecklistRounded from '@mui/icons-material/ChecklistRounded';
 import TrendingUpRounded from '@mui/icons-material/TrendingUpRounded';
+import PaymentsRounded from '@mui/icons-material/PaymentsRounded';
 import LockRounded from '@mui/icons-material/LockRounded';
 
 import { memberAvatars } from '@/lib/member-names';
@@ -45,6 +46,9 @@ type Member = {
   investments: Goal[];
 };
 type Task = { id?: number; title: string; description: string; amountCents: number; icon: string };
+const money = (cents: number) =>
+  (cents / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+
 export default function AdminPage() {
   const [section, setSection] = useState<'profiles' | 'tasks' | 'investment' | 'access'>(
       'profiles',
@@ -508,6 +512,54 @@ export default function AdminPage() {
     [newMemberAvatar, setNewMemberAvatar] = useState(memberAvatars[0]);
   const [newMemberOpen, setNewMemberOpen] = useState(false),
     [newMemberError, setNewMemberError] = useState('');
+  const [cashOutMemberId, setCashOutMemberId] = useState<number | null>(null);
+  const [cashOutAmount, setCashOutAmount] = useState('');
+  const [cashOutReason, setCashOutReason] = useState('');
+  const [cashOutError, setCashOutError] = useState('');
+  const [cashOutBusy, setCashOutBusy] = useState(false);
+  const cashOutMember = members.find((member) => member.id === cashOutMemberId);
+  const normalizedAmount = cashOutAmount.trim().replace(',', '.');
+  const cashOutCents = /^\d+(?:\.\d{1,2})?$/.test(normalizedAmount)
+    ? Math.round(Number(normalizedAmount) * 100)
+    : 0;
+  const validCashOut =
+    Number.isSafeInteger(cashOutCents) &&
+    cashOutCents > 0 &&
+    cashOutCents <= (cashOutMember?.cashCents ?? 0);
+  const cashOut = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!cashOutMember || !validCashOut || !cashOutReason.trim() || cashOutBusy) return;
+    setCashOutBusy(true);
+    setCashOutError('');
+    setNotice('');
+    try {
+      const response = await fetch(`/api/members/${cashOutMember.id}/cash-out`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amountCents: cashOutCents, reason: cashOutReason }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        setCashOutError(result.error || 'No se pudo retirar el efectivo.');
+        return;
+      }
+      setMembers((rows) =>
+        rows.map((member) =>
+          member.id === cashOutMember.id ? { ...member, cashCents: result.cashCents } : member,
+        ),
+      );
+      setCashOutMemberId(null);
+      setNotice(
+        `Retirada de ${money(cashOutCents)} de la cuenta de ${cashOutMember.name} registrada.`,
+      );
+    } catch {
+      setCashOutError(
+        'No se pudo confirmar la retirada. Revisa el saldo antes de volver a intentarlo.',
+      );
+    } finally {
+      setCashOutBusy(false);
+    }
+  };
   const addMember = async (event: React.FormEvent) => {
     event.preventDefault();
     setBusy(true);
@@ -948,6 +1000,70 @@ export default function AdminPage() {
               </DialogActions>
             </form>
           </Dialog>
+          <Dialog
+            open={!!cashOutMember}
+            onClose={() => !cashOutBusy && setCashOutMemberId(null)}
+            fullWidth
+            maxWidth="xs"
+            aria-labelledby="cash-out-title"
+          >
+            <form onSubmit={cashOut}>
+              <DialogTitle id="cash-out-title">
+                Retirar efectivo de {cashOutMember?.name}
+              </DialogTitle>
+              <DialogContent sx={{ display: 'grid', gap: 2, pt: '12px !important' }}>
+                <Typography>Disponible: {money(cashOutMember?.cashCents ?? 0)}</Typography>
+                <Typography color="text.secondary">
+                  Registra el efectivo entregado. El importe se descontará de esta cuenta.
+                </Typography>
+                {cashOutError && <Alert severity="error">{cashOutError}</Alert>}
+                <TextField
+                  autoFocus
+                  label="Importe a retirar (€)"
+                  value={cashOutAmount}
+                  onChange={(event) => setCashOutAmount(event.target.value)}
+                  inputProps={{ inputMode: 'decimal' }}
+                  disabled={cashOutBusy}
+                  fullWidth
+                  error={!!cashOutAmount && !validCashOut}
+                  helperText={
+                    cashOutAmount && !validCashOut
+                      ? 'Introduce un importe positivo, con hasta dos decimales, dentro del saldo disponible.'
+                      : undefined
+                  }
+                />
+                <TextField
+                  label="Motivo de la retirada"
+                  value={cashOutReason}
+                  onChange={(event) => setCashOutReason(event.target.value)}
+                  inputProps={{ maxLength: 200 }}
+                  required
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  disabled={cashOutBusy}
+                  helperText="Por ejemplo: compra de un libro o dinero para una excursión."
+                />
+                {validCashOut && (
+                  <Typography>
+                    Saldo tras la retirada: {money((cashOutMember?.cashCents ?? 0) - cashOutCents)}
+                  </Typography>
+                )}
+              </DialogContent>
+              <DialogActions>
+                <Button disabled={cashOutBusy} onClick={() => setCashOutMemberId(null)}>
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={cashOutBusy || !validCashOut || !cashOutReason.trim()}
+                >
+                  {cashOutBusy ? 'Registrando…' : 'Confirmar retirada'}
+                </Button>
+              </DialogActions>
+            </form>
+          </Dialog>
           {section === 'profiles' && (
             <div className="admin-members">
               {members.map((m, index) => (
@@ -990,6 +1106,20 @@ export default function AdminPage() {
                       }
                     />
                   </div>
+                  <Typography>Efectivo disponible: {money(m.cashCents)}</Typography>
+                  <Button
+                    variant="outlined"
+                    startIcon={<PaymentsRounded />}
+                    disabled={busy || cashOutBusy || m.cashCents <= 0}
+                    onClick={() => {
+                      setCashOutMemberId(m.id);
+                      setCashOutAmount('');
+                      setCashOutReason('');
+                      setCashOutError('');
+                    }}
+                  >
+                    Retirar efectivo
+                  </Button>
                   <Typography className="admin-subtitle">Metas de inversión</Typography>
                   <div className="admin-goals">
                     {m.investments.map((goal, j) => (

@@ -692,15 +692,16 @@ export default function Home() {
               <div className="history-head">
                 <Typography fontWeight={800}>Actividad reciente</Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {transactions.filter((t) => t.kind === 'task').length} tareas
+                  {transactions.filter((t) => t.kind === 'task' || t.kind === 'cash_out').length}{' '}
+                  movimientos
                 </Typography>
               </div>
               <div className="transaction-list">
                 {transactions
-                  .filter((t) => t.kind === 'task')
+                  .filter((t) => t.kind === 'task' || t.kind === 'cash_out')
                   .map((t) => (
                     <div className="transaction-row" key={t.id}>
-                      <div className="transaction-icon">✨</div>
+                      <div className="transaction-icon">{t.kind === 'cash_out' ? '💸' : '✨'}</div>
                       <div className="transaction-label">
                         <b>{t.taskTitle || t.note}</b>
                         <small>
@@ -710,15 +711,19 @@ export default function Home() {
                           })}
                         </small>
                       </div>
-                      <b className="positive">+{money(t.amountCents)}</b>
+                      <b className={t.kind === 'cash_out' ? undefined : 'positive'}>
+                        {t.amountCents > 0 ? '+' : ''}
+                        {money(t.amountCents)}
+                      </b>
                     </div>
                   ))}
-                {transactions.filter((t) => t.kind === 'task').length === 0 && (
+                {transactions.filter((t) => t.kind === 'task' || t.kind === 'cash_out').length ===
+                  0 && (
                   <div className="empty-state">
                     <span>🌟</span>
                     <b>Aquí empiezan tus logros.</b>
                     <Typography color="text.secondary">
-                      Las tareas completadas aparecerán aquí.
+                      Las tareas completadas y las retiradas aparecerán aquí.
                     </Typography>
                   </div>
                 )}
